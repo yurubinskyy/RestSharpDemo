@@ -4,12 +4,7 @@ using AventStack.ExtentReports.Reporter;
 using MbDotNet;
 using RestSharpDemo.Base;
 using System;
-using System.Collections.Generic;
-using System.Configuration;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TechTalk.SpecFlow;
 
 namespace RestSharpDemo.Hooks
@@ -21,11 +16,15 @@ namespace RestSharpDemo.Hooks
         private static ExtentTest featureName;
         private static ExtentTest scenario;
         private static ExtentReports extent;
+        private static ScenarioContext _scenarioContext;
+        private static FeatureContext _featureContext;
 
         private Settings _settings;
-        public TestInitialize(Settings settings)
+        public TestInitialize(Settings settings, ScenarioContext scenarioContext, FeatureContext featureContext)
         {
             _settings = settings;
+            _featureContext = featureContext;
+            _scenarioContext = scenarioContext;
         }
 
         [BeforeScenario]
@@ -70,7 +69,7 @@ namespace RestSharpDemo.Hooks
         public static void BeforeFeature()
         {
             //Create dynamic feature name
-            featureName = extent.CreateTest<Feature>(FeatureContext.Current.FeatureInfo.Title);
+            featureName = extent.CreateTest<Feature>(_featureContext.FeatureInfo.Title);
         }
 
         [AfterStep]
@@ -79,7 +78,7 @@ namespace RestSharpDemo.Hooks
 
             var stepType = ScenarioStepContext.Current.StepInfo.StepDefinitionType.ToString();
 
-            if (ScenarioContext.Current.TestError == null)
+            if (_scenarioContext.TestError == null)
             {
                 if (stepType == "Given")
                     scenario.CreateNode<Given>(ScenarioStepContext.Current.StepInfo.Text);
@@ -90,14 +89,14 @@ namespace RestSharpDemo.Hooks
                 else if (stepType == "And")
                     scenario.CreateNode<And>(ScenarioStepContext.Current.StepInfo.Text);
             }
-            else if (ScenarioContext.Current.TestError != null)
+            else if (_scenarioContext.TestError != null)
             {
                 if (stepType == "Given")
-                    scenario.CreateNode<Given>(ScenarioStepContext.Current.StepInfo.Text).Fail(ScenarioContext.Current.TestError.InnerException);
+                    scenario.CreateNode<Given>(ScenarioStepContext.Current.StepInfo.Text).Fail(_scenarioContext.TestError.InnerException);
                 else if (stepType == "When")
-                    scenario.CreateNode<When>(ScenarioStepContext.Current.StepInfo.Text).Fail(ScenarioContext.Current.TestError.InnerException);
+                    scenario.CreateNode<When>(ScenarioStepContext.Current.StepInfo.Text).Fail(_scenarioContext.TestError.InnerException);
                 else if (stepType == "Then")
-                    scenario.CreateNode<Then>(ScenarioStepContext.Current.StepInfo.Text).Fail(ScenarioContext.Current.TestError.Message);
+                    scenario.CreateNode<Then>(ScenarioStepContext.Current.StepInfo.Text).Fail(_scenarioContext.TestError.Message);
             }
         }
 
@@ -106,7 +105,7 @@ namespace RestSharpDemo.Hooks
         public void Initialize()
         {
             //Create dynamic scenario name
-            scenario = featureName.CreateNode<Scenario>(ScenarioContext.Current.ScenarioInfo.Title);
+            scenario = featureName.CreateNode<Scenario>(_scenarioContext.ScenarioInfo.Title);
         }
 
     }
