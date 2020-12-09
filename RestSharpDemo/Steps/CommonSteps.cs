@@ -43,10 +43,5 @@ namespace RestSharpDemo.Steps
             var authenticator = new JwtAuthenticator(access_token);
             _settings.RestClient.Authenticator = authenticator;
         }
-
-
-
-
-
     }
 }
